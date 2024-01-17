@@ -1,4 +1,4 @@
-function getBrowserFingerprint() {
+async function getFingerprint(){
   let fingerprint = {
     browser: {
       userAgent: navigator.userAgent,
@@ -12,32 +12,40 @@ function getBrowserFingerprint() {
       cors: navigator.hardwareConcurrency,
       platform: navigator.platform,
     },
+    network: {
+      localIp: await getLocalIP(),
+    },
     language: navigator.language,
-    // screen: {
-    //   width: screen.width,
-    //   height: screen.height,
-    //   colorDepth: screen.colorDepth,
-    //   pixelDepth: screen.pixelDepth,
-    // },
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   }
-  return fingerprint
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(JSON.stringify(fingerprint));
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function hashObject(obj) {
-  return Math.abs(
-    JSON.stringify(obj)
-      .split("")
-      .reduce((a, b) => {
-        a = (a << 5) - a + b.charCodeAt(0)
-        return a & a
-      }, 0)
-  )
-}
-
-const fingerprint = getBrowserFingerprint()
-const fingerprintHash = hashObject(fingerprint)
-
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelector(".hash").innerHTML = fingerprintHash
+getFingerprint().then(fingerprint => {
+  console.log(fingerprint)
+  document.querySelector(".hash").innerHTML = fingerprint
 })
+
+
+function getLocalIP() {
+    return new Promise((reslove) => {
+      try{
+        var pc = new (window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection)({
+            iceServers: []
+        });
+        pc.createDataChannel("");
+        pc.createOffer(offer => pc.setLocalDescription(offer, () => {}, e => {}), e => {});
+        pc.onicecandidate = ice => {
+            pc.onicecandidate = () => {};
+            pc = null;
+            reslove(ice.candidate.address);
+        };
+      }catch(e){
+        reslove(null)
+      }
+    })
+}

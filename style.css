@@ -1,9 +1,12 @@
-body{
-    background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 100vw;
-    color: #fff;
+body {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  color: #fff;
+  font-family: Lucida Sans, Lucida Sans Regular, Lucida Grande,
+    Lucida Sans Unicode, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.2rem;
 }
